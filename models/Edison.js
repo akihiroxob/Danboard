@@ -10,8 +10,14 @@ var Edison = function() {
     var i2cBus = require('i2c-bus');
     var Pca9685Driver = require('pca9685').Pca9685Driver;
     var Promise = require('bluebird');
-    var co      = require(co);
+    var co      = require('co');
 
+    var options = {
+        i2c: i2cBus.openSync(1),
+        address: 0x40,
+        frequency: 50,
+        debug: true
+    };
     var pwm = new Pca9685Driver(options, function(err) {
         if (err) { pwm = null; return; }
         console.info('PCA9685 was initialized.');
@@ -19,23 +25,11 @@ var Edison = function() {
 
     var that = {};
 
-    var options = {
-        i2c: i2cBus.openSync(1),
-        address: 0x40,
-        frequency: 50,
-        debug: debug
-    };
 
     process.on('SIGINT', function() {
         console.log('Gracefully shutting down from SIGINT (Ctrl-C)');
         pwm && pwm.allChannelsOff();
     });
-
-    var initialized = function() {
-        pwm.setPulseLength(SERVO_CH, 0);
-        pwm.setDutyCycle(LED_Ch, 0);
-        return that;
-    }
 
     var sleep = function(msec) {
         return new Promise (function(resolve) {
@@ -43,22 +37,26 @@ var Edison = function() {
         });
     };
 
+    var initialized = function() {
+        pwm.setPulseLength(SERVO_CH, 1500);
+        pwm && pwm.allChannelsOff();
+        return that;
+    }
+
     var moveTo = function(range) {
         if (range > 100) { range = 100; }
         if (range <   0) { range =   0; }
 
-        var pulseLength = range * 5 + 1500;
-        pwm.setPulseLength(SERVO_CH, 0);
-
-
+        var pulseLength = range * 10 + 1200;
+        pwm.setPulseLength(SERVO_CH, pulseLength);
     }
 
     var ledOn = function() {
-        pwm.setDutyCycle(LED_Ch, .8);
+        pwm.setDutyCycle(LED_Ch, 2);
     }
 
     var ledOff = function() {
-        pwm.setDutyCycle(LED_Ch, .0);
+        pwm.setDutyCycle(LED_Ch, 5);
     }
 
     that.close = function() {
@@ -79,7 +77,8 @@ var Edison = function() {
             moveTo(100);
             yield sleep(300);
             moveTo(0);
-            ledOff();
+            sleep(300)
+            pwm.allChannelsOff();
         });
     }
     that.angry = function() {}

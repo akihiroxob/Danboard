@@ -19,8 +19,8 @@ var Talk = function() {
                 '-D sysdefault:CARD=Device',
                 OUTPUT_PATH
         ];
-        //exec(command.join(' '));
         console.log(command.join(' '));
+        exec(command.join(' '));
     };
 
     return that;
