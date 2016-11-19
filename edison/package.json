@@ -1,0 +1,35 @@
+{
+  "name": "danboard",
+  "version": "1.0.0",
+  "description": "Scripts for danboard that is small robot that work on our house",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "forever -w ./index.js",
+    "start": "forever start -o ./logs/access.log -e ./logs/error.log ./index.js",
+    "stop": "forever stop ./index.js",
+    "list": "forever list"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akihiroxob/danboard.git"
+  },
+  "keywords": [
+    "edison"
+  ],
+  "author": "akihiroxob",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/akihiroxob/danboard/issues"
+  },
+  "homepage": "https://github.com/akihiroxob/danboard#readme",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "body-parser": "^1.15.2",
+    "co": "^4.6.0",
+    "express": "^4.14.0",
+    "forever": "^0.15.3",
+    "i2c-bus": "^1.1.2",
+    "pca9685": "^3.0.0",
+  }
+}

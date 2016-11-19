@@ -3,8 +3,13 @@
 // led max: 1, min: 0
 var Edison = function() {
     var SERVO_CH = 0;
-    var LED_Ch   = 5;
-    var SERVO_INIT = 1500;
+    var LED_Ch   = 3;
+    var COOLER   = 7;
+    var SERVO_HIGH      = 2000;
+    var SERVO_MID_HIGH  = 1800;
+    var SERVO_MIDDLE    = 1500;
+    var SERVO_MID_LOW   = 1200;
+    var SERVO_LOW       = 1000;
     var LED_INIT   =    0;
 
     var i2cBus = require('i2c-bus');
@@ -18,12 +23,14 @@ var Edison = function() {
         frequency: 50,
         debug: true
     };
+
     var pwm = new Pca9685Driver(options, function(err) {
         if (err) { pwm = null; return; }
         console.info('PCA9685 was initialized.');
     });
 
     var that = {};
+    that.pwm = pwm;
 
 
     process.on('SIGINT', function() {
@@ -31,25 +38,32 @@ var Edison = function() {
         pwm && pwm.allChannelsOff();
     });
 
+    var initialized = function() {
+        co(function *() {
+            pwm.setPulseLength(SERVO_CH, 1500);
+            resetAll();
+        });
+        
+        return that;
+    }
+
     var sleep = function(msec) {
         return new Promise (function(resolve) {
             setTimeout(resolve, msec);
         });
     };
 
-    var initialized = function() {
-        pwm.setPulseLength(SERVO_CH, 1500);
-        pwm && pwm.allChannelsOff();
-        return that;
-    }
-
     var moveTo = function(range) {
-        if (range > 100) { range = 100; }
-        if (range <   0) { range =   0; }
+        if (range > SERVO_HIGH) { range = SERVO_HIGH; }
+        if (range < SERVO_LOW)  { range = SERVO_LOW;  }
 
-        var pulseLength = range * 10 + 1200;
-        pwm.setPulseLength(SERVO_CH, pulseLength);
+        pwm.setPulseLength(SERVO_CH, range);
     }
+
+    var resetAll = function() {
+        pwm.allChannelsOff();
+        start();
+    };
 
     var ledOn = function() {
         pwm.setDutyCycle(LED_Ch, 2);
@@ -59,6 +73,10 @@ var Edison = function() {
         pwm.setDutyCycle(LED_Ch, 5);
     }
 
+    var start = function () {
+        pwm.setDutyCycle(COOLER, 1);
+    }
+
     that.close = function() {
         pwm.allChannelsOff();
     }
@@ -66,19 +84,21 @@ var Edison = function() {
     that.happy = function() {
         co(function *(){
             ledOn();
-            moveTo(100);
+            moveTo(SERVO_HIGH);
+            yield sleep(500);
+            moveTo(SERVO_MID_HIGH);
+            yield sleep(300);
+            moveTo(SERVO_HIGH);
+            yield sleep(300);
+            moveTo(SERVO_MID_HIGH);
+            yield sleep(300);
+
+            moveTo(SERVO_HIGH);
+            yield sleep(300);
+
+            moveTo(SERVO_MIDDLE);
             yield sleep(1000);
-            moveTo(90);
-            yield sleep(300);
-            moveTo(100);
-            yield sleep(300);
-            moveTo(90);
-            yield sleep(300);
-            moveTo(100);
-            yield sleep(300);
-            moveTo(0);
-            sleep(300)
-            pwm.allChannelsOff();
+            resetAll()
         });
     }
     that.angry = function() {}
