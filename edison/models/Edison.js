@@ -3,14 +3,12 @@
 // led max: 1, min: 0
 var Edison = function() {
     var SERVO_CH = 0;
-    var LED_Ch   = 3;
-    var COOLER   = 7;
-    var SERVO_HIGH      = 2000;
-    var SERVO_MID_HIGH  = 1800;
-    var SERVO_MIDDLE    = 1500;
-    var SERVO_MID_LOW   = 1200;
-    var SERVO_LOW       = 1000;
-    var LED_INIT   =    0;
+    var LED_Ch   = 1;
+    var COOLER   = 3;
+    var SERVO_HIGH      = 1320;
+    var SERVO_MID       = 1450;
+    var SERVO_LOW       = 1580;
+    var LED_INIT        =    0;
 
     var i2cBus = require('i2c-bus');
     var Pca9685Driver = require('pca9685').Pca9685Driver;
@@ -54,9 +52,6 @@ var Edison = function() {
     };
 
     var moveTo = function(range) {
-        if (range > SERVO_HIGH) { range = SERVO_HIGH; }
-        if (range < SERVO_LOW)  { range = SERVO_LOW;  }
-
         pwm.setPulseLength(SERVO_CH, range);
     }
 
@@ -84,19 +79,18 @@ var Edison = function() {
     that.happy = function() {
         co(function *(){
             ledOn();
-            moveTo(SERVO_HIGH);
-            yield sleep(500);
-            moveTo(SERVO_MID_HIGH);
-            yield sleep(300);
-            moveTo(SERVO_HIGH);
-            yield sleep(300);
-            moveTo(SERVO_MID_HIGH);
-            yield sleep(300);
 
             moveTo(SERVO_HIGH);
-            yield sleep(300);
-
-            moveTo(SERVO_MIDDLE);
+            yield sleep(800);
+            moveTo(SERVO_LOW);
+            yield sleep(200);
+            moveTo(SERVO_HIGH);
+            yield sleep(200);
+            moveTo(SERVO_LOW);
+            yield sleep(200);
+            moveTo(SERVO_HIGH);
+            yield sleep(200);
+            moveTo(SERVO_LOW);
             yield sleep(1000);
             resetAll()
         });
